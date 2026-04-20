@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-import os, re, zipfile
+import os, re
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -72,9 +72,14 @@ def analyze_video(video_id: str):
     if not data["frames"]:
         raise HTTPException(400, detail="No frames found")
 
+    frame_info = ", ".join([f"frame {f['x']}" for f in data["frames"]])
     contents = [
-        f'The model predicted this action: "{data["label"]}". '
-        f'Describe what you see in the frames, confirm if the label matches, '
+        f'The model predicted this action: "{data["label"]}" for a video. '
+        f'I am sending you {len(data["frames"])} key frames extracted from the video '
+        f'({frame_info}). '
+        f'For each frame, reference its frame number in your explanation. '
+        f'Describe what you see, confirm whether the label matches, explain the '
+        f'reasoning behind the prediction referencing specific frames, '
         f'and rate confidence High/Medium/Low.'
     ]
     for frame in data["frames"]:
@@ -82,7 +87,7 @@ def analyze_video(video_id: str):
         contents.append(types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg"))
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-flash-latest",
         contents=contents
     )
     return {
