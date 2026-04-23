@@ -100,3 +100,12 @@ def analyze_video(video_id: str):
 
 if CAM_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(CAM_DIR)), name="static")
+
+from fastapi.responses import FileResponse
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse("frontend/index.html")
+
+if CAM_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(CAM_DIR)), name="static")
